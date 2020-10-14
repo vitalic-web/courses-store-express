@@ -24,12 +24,14 @@ router.get('/login', async (req, res) => {
   })
 })
 
+// выход пользователя
 router.get('/logout', async (req, res) => {
   req.session.destroy(() => {
     res.redirect('/auth/login#login');
   });
 })
 
+// вход пользователя
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -70,13 +72,14 @@ router.post('/register', registerValidators, async (req, res) => { // добав
       req.flash('registerError', errors.array()[0].msg); // приводим ошибки к массиву и забираем из [0] сообщение в св-ве msg
       return res.status(422).redirect('/auth/login#register');
     }
-    const hashPassword = await bcrypt.hash(password, 10);
-    const user = new User({
+    const hashPassword = await bcrypt.hash(password, 10); // кэширование пароля
+
+    const user = new User({  // создание нового пользователя
       email, name, password: hashPassword, cart: { items: [] }
     });
     await user.save();
 
-    await transporter.sendMail(reqEmail(email));
+    await transporter.sendMail(reqEmail(email)); // отправка емейл об успешной регистрации
     res.redirect('/auth/login#login');
   } catch (e) {
     console.log(e);
